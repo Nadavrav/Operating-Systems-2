@@ -2,7 +2,7 @@
 #include "kernel/stat.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
-
+#include "syscall.h"
 //
 // wrapper so that it's OK if main() does not call exit().
 //
@@ -144,4 +144,20 @@ void *
 memcpy(void *dst, const void *src, uint n)
 {
   return memmove(dst, src, n);
+}
+
+int channel_create(void) {
+  return syscall(SYS_channel_create);
+}
+
+int channel_put(int cd, int data) {
+  return syscall(SYS_channel_put, cd, data);
+}
+
+int channel_take(int cd, int *data) {
+  return syscall(SYS_channel_take, cd, data);
+}
+
+int channel_destroy(int cd) {
+  return syscall(SYS_channel_destroy, cd);
 }

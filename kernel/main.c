@@ -3,8 +3,12 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
+#include "channel.h"
+
 
 volatile static int started = 0;
+struct channel channels[NCHANNEL];
+extern void channelinit(void);
 
 // start() jumps here in supervisor mode on all CPUs.
 void
@@ -30,6 +34,7 @@ main()
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
     __sync_synchronize();
+    channelinit();  // Initialize the channels
     started = 1;
   } else {
     while(started == 0)
@@ -43,3 +48,18 @@ main()
 
   scheduler();        
 }
+
+
+// Function to initialize the channel array
+void channelinit(void) {
+  for (int i = 0; i < NCHANNEL; i++) {
+    // Initialize the spinlock for each channel
+    initlock(&channels[i].lock, "channel");
+    // Set the channel to empty and invalid state
+    channels[i].is_empty = 1;
+    channels[i].is_valid = 0;
+    // Clear the owner field
+    channels[i].owner = 0;
+  }
+}
+
