@@ -89,3 +89,37 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int   // Wrapper for channel_create
+sys_channel_create(void) {
+    return channel_create();
+}
+
+// Wrapper for channel_put
+int
+sys_channel_put(void) {
+    int cd, data;
+    argint(0, &cd);
+    argint(1, &data);
+    return channel_put(cd, data);
+}
+
+// Wrapper for channel_take
+int
+sys_channel_take(void)
+{
+  int cd;
+  int *data;
+  argint(0, &cd);
+  argptr(1, (void*)&data, sizeof(data));
+  return channel_take(cd,data);
+
+  }
+
+// Wrapper for channel_destroy
+int
+sys_channel_destroy(void) {
+    int cd;
+    argint(0, &cd);
+    return channel_destroy(cd);
+}

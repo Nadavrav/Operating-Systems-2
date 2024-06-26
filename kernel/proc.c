@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "channel.h"
 
 struct cpu cpus[NCPU];
 
@@ -348,6 +349,15 @@ exit(int status)
 {
   struct proc *p = myproc();
 
+  for(int i = 0; i < NCHANNEL; i++) {
+        acquire(&channels[i].lock);
+        if(channels[i].owner == p) {
+            channels[i].owner = 0;
+            channels[i].has_data = 0;
+            wakeup(&channels[i]);
+        }
+        release(&channels[i].lock);
+  }
   if(p == initproc)
     panic("init exiting");
 
@@ -587,6 +597,16 @@ kill(int pid)
 {
   struct proc *p;
 
+  for(int i = 0; i < NCHANNEL; i++) {
+        acquire(&channels[i].lock);
+        if(channels[i].owner == p) {
+            channels[i].owner = 0;
+            channels[i].has_data = 0;
+            wakeup(&channels[i]);
+        }
+        release(&channels[i].lock);
+  }
+  
   for(p = proc; p < &proc[NPROC]; p++){
     acquire(&p->lock);
     if(p->pid == pid){

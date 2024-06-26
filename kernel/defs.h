@@ -8,6 +8,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct channel; //   ***
 
 // bio.c
 void            binit(void);
@@ -187,3 +188,10 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+
+//channel.c 
+void            channelinit(void);
+int             channel_create(void);
+int             channel_put(int cd, int data);
+int             channel_take(int cd, int *data);
+int             channel_destroy(int cd);

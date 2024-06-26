@@ -3,8 +3,11 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
+#include "channel.h"
 
 volatile static int started = 0;
+
+struct channel channels[NCHANNEL]; 
 
 // start() jumps here in supervisor mode on all CPUs.
 void
@@ -30,6 +33,7 @@ main()
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
     __sync_synchronize();
+    channelinit();
     started = 1;
   } else {
     while(started == 0)
