@@ -105,3 +105,16 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 };
+
+#define maxChannels 10
+
+struct channel {
+  int data;
+  struct proc* owner;
+  struct spinlock lock;
+  int isEmpty;
+  int isValid;
+};
+
+void channel_init(void);
+extern struct channel channels[maxChannels];

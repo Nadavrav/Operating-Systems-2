@@ -681,3 +681,15 @@ procdump(void)
     printf("\n");
   }
 }
+
+struct channel channels[maxChannels];
+
+//initialize fuction to be called in main 
+void channel_init(void){
+  for(int i=0;i<maxChannels; i++){
+    channels[i].owner=0;
+    channels[i].isEmpty=1;
+    channels[i].isValid=0;
+    initlock(&channels[i], "channel");
+  }
+}

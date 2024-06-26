@@ -6,6 +6,115 @@
 #include "spinlock.h"
 #include "proc.h"
 
+
+uint64
+sys_channel_create(void)
+{
+  for (int i = 0; i < maxChannels; i++)
+  {
+    acquire(&channels[i].lock);
+    if (!channels[i].owner==0)
+    {
+      channels[i].owner = myproc();
+      channels[i].isValid=1;
+      channels[i].isEmpty=1;
+      release(&channels[i].lock);
+      return i;
+    }
+    release(&channels[i].lock);
+  }
+  return -1;
+}
+
+
+uint64
+sys_channel_put(void)
+{
+  int cd, data;
+  argint(0, &cd);
+  argint(1, &data);
+
+  if (cd < 0 || cd >= maxChannels)
+    return -1;
+
+  struct channel *ch = &channels[cd];
+  acquire(&ch->lock);
+  while (!ch->isEmpty)
+  {
+    if(!ch->isValid){
+      release(&ch->lock);
+      return -1;
+    }
+    sleep(ch, &ch->lock);
+  }
+
+  ch->data = data;
+  ch->isEmpty = 0;
+  release(&ch->lock);
+
+  wakeup(ch);
+  return 0;
+}
+
+uint64
+sys_channel_take(void)
+{
+  int cd;
+  uint64 data;
+
+  argint(0, &cd);
+  argaddr(1, &data);
+
+  if (cd < 0 || cd >= maxChannels)
+    return -1;
+
+  struct channel *ch = &channels[cd];
+  acquire(&ch->lock);
+  while (ch->isEmpty)
+  {
+    if (!ch->isValid)
+    {
+      release(&ch->lock);
+      return -1;
+    }
+    sleep(ch, &ch->lock);
+  }
+
+  if (copyout(myproc()->pagetable, data, (char *)&ch->data, sizeof(int)) < 0)
+  {
+    release(&ch->lock);
+    return -1;
+  }
+
+  ch->isEmpty = 1;
+  release(&ch->lock);
+  wakeup(ch);
+  return 0;
+}
+
+uint64
+sys_channel_destroy(void)
+{
+  int cd;
+  argint(0, &cd);
+  if (cd < 0 || cd >= maxChannels)
+    return -1;
+
+  struct channel *ch = &channels[cd];
+  acquire(&ch->lock);
+  if (!ch->isValid)
+  {
+    release(&ch->lock);
+    return -1;
+  }
+
+  ch->isValid = 0;
+  ch->owner=0;
+  wakeup(ch);
+  release(&ch->lock);
+  return 0;
+}
+
 uint64
 sys_exit(void)
 {
