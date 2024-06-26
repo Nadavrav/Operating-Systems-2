@@ -3,6 +3,7 @@
 #include "user/user.h"
 
 int main(){
+    
     int cd = channel_create();
     if (cd < 0) {
         printf("Failed to create channel\n");
@@ -17,6 +18,7 @@ int main(){
         // Handle error
         channel_destroy(cd);
         // Handle error
+        
     } else {
         int data;
         if (channel_take(cd, &data) < 0) { // 42
@@ -27,5 +29,8 @@ int main(){
         // Handle error
         data = channel_take(cd, &data); // Sleep until child destroys channel
         // Handle error
+        
     }
+    
+    return 1;
 }

@@ -12,9 +12,11 @@ sys_channel_create(void)
 {
   for (int i = 0; i < maxChannels; i++)
   {
+    
     acquire(&channels[i].lock);
-    if (!channels[i].owner==0)
+    if (channels[i].owner==0)
     {
+  
       channels[i].owner = myproc();
       channels[i].isValid=1;
       channels[i].isEmpty=1;
@@ -23,6 +25,7 @@ sys_channel_create(void)
     }
     release(&channels[i].lock);
   }
+  
   return -1;
 }
 
